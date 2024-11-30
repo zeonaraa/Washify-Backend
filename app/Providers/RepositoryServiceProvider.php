@@ -5,11 +5,13 @@ namespace App\Providers;
 use Illuminate\Support\ServiceProvider;
 use App\Interfaces\{
     OutletsRepositoryInterface,
-    PaketRepositoryInterface
+    PaketRepositoryInterface,
+    UserRepositoryInterface
 };
 use App\Repositories\{
     OutletsRepository,
-    PaketRepository
+    PaketRepository,
+    UserRepository
 };
 
 class RepositoryServiceProvider extends ServiceProvider
@@ -21,6 +23,7 @@ class RepositoryServiceProvider extends ServiceProvider
     {
         $this->app->bind(OutletsRepositoryInterface::class, OutletsRepository::class);
         $this->app->bind(PaketRepositoryInterface::class, PaketRepository::class);
+        $this->app->bind(UserRepositoryInterface::class, UserRepository::class);
     }
 
     /**

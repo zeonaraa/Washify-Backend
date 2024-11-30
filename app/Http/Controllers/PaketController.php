@@ -74,7 +74,7 @@ class PaketController extends Controller
 
         $validated = $request->validated();
         $paket = $this->paketRepository->update($validated, $id);
-        return ApiResponseClass::sendResponse(new PaketResource($paket), 'Update Create Success', 200);
+        return ApiResponseClass::sendResponse(new PaketResource($paket), 'Update Update Success', 200);
 
     }
 
