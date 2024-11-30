@@ -3,8 +3,14 @@
 namespace App\Providers;
 
 use Illuminate\Support\ServiceProvider;
-use App\Interfaces\OutletsRepositoryInterface;
-use App\Repositories\OutletsRepository;
+use App\Interfaces\{
+    OutletsRepositoryInterface,
+    PaketRepositoryInterface
+};
+use App\Repositories\{
+    OutletsRepository,
+    PaketRepository
+};
 
 class RepositoryServiceProvider extends ServiceProvider
 {
@@ -14,6 +20,7 @@ class RepositoryServiceProvider extends ServiceProvider
     public function register(): void
     {
         $this->app->bind(OutletsRepositoryInterface::class, OutletsRepository::class);
+        $this->app->bind(PaketRepositoryInterface::class, PaketRepository::class);
     }
 
     /**
@@ -21,6 +28,6 @@ class RepositoryServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        
+
     }
 }

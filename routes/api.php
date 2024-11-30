@@ -11,4 +11,5 @@ Route::get('/me', [AuthController::class, 'me'])->middleware('auth:api');
 
 Route::middleware(['auth:api'])->group(function () {
     Route::apiResource('outlets', OutletController::class);
+    Route::apiResource('pakets', PaketController::class);
 });
