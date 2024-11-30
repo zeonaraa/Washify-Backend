@@ -6,6 +6,8 @@ use App\Interfaces\OutletsRepositoryInterface;
 use App\Http\Requests\StoreOutletRequest;
 use App\Http\Requests\UpdateOutletRequest;
 use Illuminate\Http\Request;
+use App\Classes\ApiResponseClass;
+use App\Http\Resources\OutletResource;
 
 class OutletController extends Controller
 {
@@ -28,7 +30,7 @@ class OutletController extends Controller
     public function index()
     {
         $outlets = $this->outletsRepository->index();
-        return response()->json($outlets, 200);
+        return ApiResponseClass::sendResponse(OutletResource::collection($outlets),'',200);
     }
 
     public function show($id)
@@ -38,7 +40,7 @@ class OutletController extends Controller
         }
 
         $outlet = $this->outletsRepository->getById($id);
-        return response()->json($outlet, 200);
+        return ApiResponseClass::sendResponse(new OutletResource($outlet), 'Outlet GetByID Success', 200);
     }
 
     public function store(StoreOutletRequest $request)
@@ -49,7 +51,7 @@ class OutletController extends Controller
 
         $validated = $request->validated();
         $outlet = $this->outletsRepository->store($validated);
-        return response()->json($outlet, 201);
+        return ApiResponseClass::sendResponse(new OutletResource($outlet), 'Outlet Create Success', 201);
     }
 
     public function update(UpdateOutletRequest $request, $id)
@@ -60,8 +62,9 @@ class OutletController extends Controller
 
         $validated = $request->validated();
         $outlet = $this->outletsRepository->update($validated, $id);
-        return response()->json($outlet, 200);
+        return ApiResponseClass::sendResponse(new OutletResource($outlet), 'Outlet Update Success', 200);
     }
+
 
     public function destroy($id)
     {
@@ -70,6 +73,6 @@ class OutletController extends Controller
         }
 
         $this->outletsRepository->delete($id);
-        return response()->json(null, 204);
+        return ApiResponseClass::sendResponse('Outlet Delete Success', 204);
     }
 }

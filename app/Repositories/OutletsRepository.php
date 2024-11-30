@@ -17,9 +17,13 @@ class OutletsRepository implements OutletsRepositoryInterface
        return Outlet::create($data);
     }
 
-    public function update(array $data,$id){
-       return Outlet::whereId($id)->update($data);
-    }
+    public function update(array $data, $id)
+{
+    $outlet = Outlet::findOrFail($id);
+    $outlet->update($data);
+    return $outlet;
+}
+
 
     public function delete($id){
        Outlet::destroy($id);
