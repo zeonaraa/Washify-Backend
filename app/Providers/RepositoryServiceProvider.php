@@ -7,13 +7,15 @@ use App\Interfaces\{
     OutletsRepositoryInterface,
     PaketRepositoryInterface,
     UserRepositoryInterface,
-    MemberRepositoryInterface
+    MemberRepositoryInterface,
+    TransaksiRepositoryInterface
 };
 use App\Repositories\{
     OutletsRepository,
     PaketRepository,
     UserRepository,
-    MemberRepository
+    MemberRepository,
+    TransaksiRepository
 };
 
 class RepositoryServiceProvider extends ServiceProvider
@@ -27,6 +29,7 @@ class RepositoryServiceProvider extends ServiceProvider
         $this->app->bind(PaketRepositoryInterface::class, PaketRepository::class);
         $this->app->bind(UserRepositoryInterface::class, UserRepository::class);
         $this->app->bind(MemberRepositoryInterface::class, MemberRepository::class);
+        $this->app->bind(TransaksiRepositoryInterface::class, TransaksiRepository::class);
     }
 
     /**

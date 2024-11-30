@@ -2,64 +2,93 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Transaksi;
+use App\Interfaces\TransaksiRepositoryInterface;
+use App\Http\Requests\StoreTransaksiRequest;
+use App\Http\Requests\UpdateTransaksiRequest;
 use Illuminate\Http\Request;
+use App\Classes\ApiResponseClass;
+use App\Http\Resources\TransaksiResource;
 
 class TransaksiController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
+    protected $transaksiRepository;
+
+    public function __construct(TransaksiRepositoryInterface $transaksiRepository)
+    {
+        $this->transaksiRepository = $transaksiRepository;
+    }
+
+    private function checkAdmin($method)
+    {
+        if ($method !== 'index' && auth()->user()->role !== 'admin') {
+            return response()->json([
+                'message' => 'Unauthorized. Only admin can perform this action.',
+            ], 403);
+        }
+    }
+
     public function index()
     {
-        //
+        $transaksi = $this->transaksiRepository->index();
+        return ApiResponseClass::sendResponse(TransaksiResource::collection($transaksi),'',200);
     }
 
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
+    public function show($id)
     {
-        //
+        if ($response = $this->checkAdmin(__FUNCTION__)) {
+            return $response;
+        }
+
+        $transaksi = $this->transaksiRepository->getById($id);
+        return ApiResponseClass::sendResponse(new TransaksiResource($transaksi), 'Transaksi GetByID Success', 200);
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
-    public function store(Request $request)
-    {
-        //
+    public function store(StoreTransaksiRequest $request)
+{
+    if ($response = $this->checkAdmin(__FUNCTION__)) {
+        return $response;
     }
 
-    /**
-     * Display the specified resource.
-     */
-    public function show(Transaksi $transaksi)
-    {
-        //
+    $validated = $request->validated();
+
+    $validated['id_user'] = auth()->id();
+
+    $transaksi = $this->transaksiRepository->store($validated);
+
+    return ApiResponseClass::sendResponse(
+        new TransaksiResource($transaksi),
+        'Transaksi Create Success',
+        201
+    );
+}
+
+
+public function update(UpdateTransaksiRequest $request, $id)
+{
+    if ($response = $this->checkAdmin(__FUNCTION__)) {
+        return $response;
     }
 
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(Transaksi $transaksi)
-    {
-        //
-    }
+    $validated = $request->validated();
 
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, Transaksi $transaksi)
-    {
-        //
-    }
+    $validated['id_user'] = auth()->id();
 
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(Transaksi $transaksi)
+    $transaksi = $this->transaksiRepository->update($validated, $id);
+
+    return ApiResponseClass::sendResponse(
+        new TransaksiResource($transaksi),
+        'Transaksi Update Success',
+        200
+    );
+}
+
+    public function destroy($id)
     {
-        //
+        if ($response = $this->checkAdmin(__FUNCTION__)) {
+            return $response;
+        }
+
+        $this->transaksiRepository->delete($id);
+        return ApiResponseClass::sendResponse('Transaksi Delete Success', 204);
     }
 }
