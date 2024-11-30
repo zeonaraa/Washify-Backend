@@ -15,6 +15,11 @@ class User extends Authenticatable implements JWTSubject
     protected $table = 'users';
     protected $fillable = ['nama', 'username', 'password', 'id_outlet', 'role'];
 
+    public function getRole()
+    {
+        return $this->role;
+    }
+
     public function outlet()
     {
         return $this->belongsTo(Outlet::class, 'id_outlet');
