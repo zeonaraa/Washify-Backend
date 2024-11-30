@@ -8,14 +8,16 @@ use App\Interfaces\{
     PaketRepositoryInterface,
     UserRepositoryInterface,
     MemberRepositoryInterface,
-    TransaksiRepositoryInterface
+    TransaksiRepositoryInterface,
+    DetailTransaksiRepositoryInterface
 };
 use App\Repositories\{
     OutletsRepository,
     PaketRepository,
     UserRepository,
     MemberRepository,
-    TransaksiRepository
+    TransaksiRepository,
+    DetailTransaksiRepository
 };
 
 class RepositoryServiceProvider extends ServiceProvider
@@ -30,6 +32,7 @@ class RepositoryServiceProvider extends ServiceProvider
         $this->app->bind(UserRepositoryInterface::class, UserRepository::class);
         $this->app->bind(MemberRepositoryInterface::class, MemberRepository::class);
         $this->app->bind(TransaksiRepositoryInterface::class, TransaksiRepository::class);
+        $this->app->bind(DetailTransaksiRepositoryInterface::class, DetailTransaksiRepository::class);
     }
 
     /**

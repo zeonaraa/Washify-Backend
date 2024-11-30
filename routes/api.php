@@ -6,7 +6,8 @@ use App\Http\Controllers\{
     PaketController,
     UserController,
     MemberController,
-    TransaksiController
+    TransaksiController,
+    DetailTransaksiController
 };
 use App\Http\Middleware\{RedirectIfAuthenticatedApi, CheckJwtToken};
 
@@ -20,4 +21,5 @@ Route::middleware(['auth:api'])->group(function () {
     Route::apiResource('users', UserController::class);
     Route::apiResource('members', MemberController::class);
     Route::apiResource('transaksis', TransaksiController::class);
+    Route::apiResource('details', DetailTransaksiController::class);
 });
