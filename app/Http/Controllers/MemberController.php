@@ -12,7 +12,6 @@ use App\Http\Resources\MemberResource;
 
 class MemberController extends Controller
 {
-
     protected $memberRepository;
 
     public function __construct(MemberRepositoryInterface $memberRepository)
@@ -20,26 +19,27 @@ class MemberController extends Controller
         $this->memberRepository = $memberRepository;
     }
 
-    private function checkAdmin($method)
+    private function checkAccess($method)
     {
-        if ($method !== 'index' && auth()->user()->role !== 'admin') {
+        if (!in_array(auth()->user()->role, ['admin', 'kasir'])) {
             return response()->json([
-                'message' => 'Unauthorized. Only admin can perform this action.',
+                'message' => 'Unauthorized. Only admin or kasir can perform this action.',
             ], 403);
         }
     }
+
     /**
      * Display a listing of the resource.
      */
     public function index()
     {
         $member = $this->memberRepository->index();
-        return ApiResponseClass::sendResponse(MemberResource::collection($member),'',200);
+        return ApiResponseClass::sendResponse(MemberResource::collection($member), '', 200);
     }
 
     public function show($id)
     {
-        if ($response = $this->checkAdmin(__FUNCTION__)) {
+        if ($response = $this->checkAccess(__FUNCTION__)) {
             return $response;
         }
 
@@ -52,30 +52,27 @@ class MemberController extends Controller
      */
     public function store(StoreMemberRequest $request)
     {
-        if ($response = $this->checkAdmin(__FUNCTION__)) {
+        if ($response = $this->checkAccess(__FUNCTION__)) {
             return $response;
         }
 
         $validated = $request->validated();
         $member = $this->memberRepository->store($validated);
         return ApiResponseClass::sendResponse(new MemberResource($member), 'Member Create Success', 201);
-
     }
-
 
     /**
      * Update the specified resource in storage.
      */
     public function update(UpdateMemberRequest $request, $id)
     {
-        if ($response = $this->checkAdmin(__FUNCTION__)) {
+        if ($response = $this->checkAccess(__FUNCTION__)) {
             return $response;
         }
 
         $validated = $request->validated();
         $member = $this->memberRepository->update($validated, $id);
         return ApiResponseClass::sendResponse(new MemberResource($member), 'Member Update Success', 200);
-
     }
 
     /**
@@ -83,7 +80,7 @@ class MemberController extends Controller
      */
     public function destroy($id)
     {
-        if ($response = $this->checkAdmin(__FUNCTION__)) {
+        if ($response = $this->checkAccess(__FUNCTION__)) {
             return $response;
         }
 

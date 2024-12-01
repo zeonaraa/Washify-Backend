@@ -20,9 +20,9 @@ class TransaksiController extends Controller
 
     private function checkAdmin($method)
     {
-        if ($method !== 'index' && auth()->user()->role !== 'admin') {
+        if (!in_array(auth()->user()->role, ['admin', 'kasir'])) {
             return response()->json([
-                'message' => 'Unauthorized. Only admin can perform this action.',
+                'message' => 'Unauthorized. Only admin or kasir can perform this action.',
             ], 403);
         }
     }
