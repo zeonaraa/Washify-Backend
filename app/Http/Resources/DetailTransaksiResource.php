@@ -15,6 +15,7 @@ class DetailTransaksiResource extends JsonResource
     public function toArray(Request $request): array
     {
         return [
+            'id' => $this->id,
             'id_transaksi' => $this->id_transaksi,
             'id_paket' => $this->id_paket,
             'qty' => $this->qty,

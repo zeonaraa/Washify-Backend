@@ -16,6 +16,16 @@ class StoreMemberRequest extends FormRequest
         return true;
     }
 
+    public function rules(): array
+    {
+        return [
+            'nama' => 'required',
+            'alamat' => 'required',
+            'jenis_kelamin' => 'required',
+            'tlp' => 'required'
+        ];
+    }
+
     /**
      * Get the validation rules that apply to the request.
      *

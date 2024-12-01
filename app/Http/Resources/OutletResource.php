@@ -15,6 +15,7 @@ class OutletResource extends JsonResource
     public function toArray(Request $request): array
     {
         return [
+            'id' => $this->id,
             'nama' => $this->nama,
             'alamat' => $this->alamat,
             'tlp' => $this->tlp,
