@@ -7,7 +7,8 @@ use App\Http\Controllers\{
     UserController,
     MemberController,
     TransaksiController,
-    DetailTransaksiController
+    DetailTransaksiController,
+    ReportController
 };
 use App\Http\Middleware\{RedirectIfAuthenticatedApi, CheckJwtToken};
 
@@ -22,4 +23,7 @@ Route::middleware(['auth:api'])->group(function () {
     Route::apiResource('members', MemberController::class);
     Route::apiResource('transaksis', TransaksiController::class);
     Route::apiResource('details', DetailTransaksiController::class);
+
+    Route::get('/laporan', [ReportController::class, 'getReports']);
+
 });
