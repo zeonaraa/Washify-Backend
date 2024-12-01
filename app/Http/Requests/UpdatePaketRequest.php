@@ -3,6 +3,8 @@
 namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Contracts\Validation\Validator;
+use Illuminate\Http\Exceptions\HttpResponseException;
 
 class UpdatePaketRequest extends FormRequest
 {
@@ -22,10 +24,10 @@ class UpdatePaketRequest extends FormRequest
     public function rules()
     {
         return [
-            'id_outlet' => 'required|exists:tb_outlet,id',
-            'jenis' => 'required|in:kiloan,selimut,bed_cover,kaos,lain',
-            'nama_paket' => 'required|string|max:100',
-            'harga' => 'required|integer|min:1000',
+            'id_outlet' => 'nullable|exists:tb_outlet,id',
+            'jenis' => 'nullable|in:kiloan,selimut,bed_cover,kaos,lain',
+            'nama_paket' => 'nullable|string|max:100',
+            'harga' => 'nullable|integer|min:1000',
         ];
     }
 
@@ -34,13 +36,12 @@ class UpdatePaketRequest extends FormRequest
      *
      * @return array
      */
-    public function attributes()
+    protected function failedValidation(Validator $validator)
     {
-        return [
-            'id_outlet' => 'Outlet',
-            'jenis' => 'Jenis Paket',
-            'nama_paket' => 'Nama Paket',
-            'harga' => 'Harga',
-        ];
+        throw new HttpResponseException(response()->json([
+            'success' => false,
+            'message' => 'Validation errors',
+            'errors' => $validator->errors()
+        ], 422));
     }
 }

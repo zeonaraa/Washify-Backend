@@ -3,6 +3,8 @@
 namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Contracts\Validation\Validator;
+use Illuminate\Http\Exceptions\HttpResponseException;
 
 class UpdateTransaksiRequest extends FormRequest
 {
@@ -22,17 +24,26 @@ class UpdateTransaksiRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'id_outlet' => 'required|exists:tb_outlet,id',
-            'kode_invoice' => 'required',
-            'id_member' => 'required',
-            'tgl' => 'required',
-            'batas_waktu' => 'required',
-            'tgl_bayar' => 'required',
-            'biaya_tambahan' => 'required',
-            'diskon' => 'required',
-            'pajak' => 'required',
-            'status' => 'required',
-            'dibayar' => 'required',
+            'id_outlet' => 'nullable|exists:tb_outlet,id',
+            'kode_invoice' => 'nullable',
+            'id_member' => 'nullable',
+            'tgl' => 'nullable',
+            'batas_waktu' => 'nullable',
+            'tgl_bayar' => 'nullable',
+            'biaya_tambahan' => 'nullable',
+            'diskon' => 'nullable',
+            'pajak' => 'nullable',
+            'status' => 'nullable',
+            'dibayar' => 'nullable',
         ];
+    }
+
+    protected function failedValidation(Validator $validator)
+    {
+        throw new HttpResponseException(response()->json([
+            'success' => false,
+            'message' => 'Validation errors',
+            'errors' => $validator->errors()
+        ], 422));
     }
 }

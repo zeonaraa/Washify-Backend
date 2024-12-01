@@ -3,6 +3,9 @@
 namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Contracts\Validation\Validator;
+use Illuminate\Http\Exceptions\HttpResponseException;
+
 
 class UpdateDetailTransaksiRequest extends FormRequest
 {
@@ -24,5 +27,14 @@ class UpdateDetailTransaksiRequest extends FormRequest
             'qty' => 'nullable|numeric|min:1',
             'keterangan' => 'nullable|string',
         ];
+    }
+
+    protected function failedValidation(Validator $validator)
+    {
+        throw new HttpResponseException(response()->json([
+            'success' => false,
+            'message' => 'Validation errors',
+            'errors' => $validator->errors()
+        ], 422));
     }
 }

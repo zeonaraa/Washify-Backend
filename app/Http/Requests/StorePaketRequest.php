@@ -3,6 +3,8 @@
 namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Contracts\Validation\Validator;
+use Illuminate\Http\Exceptions\HttpResponseException;
 
 class StorePaketRequest extends FormRequest
 {
@@ -36,13 +38,12 @@ class StorePaketRequest extends FormRequest
      *
      * @return array
      */
-    public function attributes()
+    protected function failedValidation(Validator $validator)
     {
-        return [
-            'id_outlet' => 'Outlet',
-            'jenis' => 'Jenis Paket',
-            'nama_paket' => 'Nama Paket',
-            'harga' => 'Harga',
-        ];
+        throw new HttpResponseException(response()->json([
+            'success' => false,
+            'message' => 'Validation errors',
+            'errors' => $validator->errors()
+        ], 422));
     }
 }

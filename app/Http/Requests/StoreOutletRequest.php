@@ -3,6 +3,8 @@
 namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Contracts\Validation\Validator;
+use Illuminate\Http\Exceptions\HttpResponseException;
 
 class StoreOutletRequest extends FormRequest
 {
@@ -20,12 +22,12 @@ class StoreOutletRequest extends FormRequest
         ];
     }
 
-    public function messages()
+    protected function failedValidation(Validator $validator)
     {
-        return [
-            'nama.required' => 'Nama outlet harus diisi.',
-            'alamat.required' => 'Alamat outlet harus diisi.',
-            'tlp.required' => 'Nomor telepon outlet harus diisi.',
-        ];
+        throw new HttpResponseException(response()->json([
+            'success' => false,
+            'message' => 'Validation errors',
+            'errors' => $validator->errors()
+        ], 422));
     }
 }

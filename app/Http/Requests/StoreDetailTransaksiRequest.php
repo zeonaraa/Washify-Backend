@@ -2,6 +2,8 @@
 
 namespace App\Http\Requests;
 
+use Illuminate\Contracts\Validation\Validator;
+use Illuminate\Http\Exceptions\HttpResponseException;
 use Illuminate\Foundation\Http\FormRequest;
 
 class StoreDetailTransaksiRequest extends FormRequest
@@ -17,13 +19,12 @@ class StoreDetailTransaksiRequest extends FormRequest
     /**
      * Get the validation rules that apply to the request.
      */
-    public function rules(): array
+    protected function failedValidation(Validator $validator)
     {
-        return [
-            'id_transaksi' => 'required|exists:tb_transaksi,id',
-            'id_paket' => 'required|exists:tb_paket,id',
-            'qty' => 'required|numeric|min:1',
-            'keterangan' => 'nullable|string',
-        ];
+        throw new HttpResponseException(response()->json([
+            'success' => false,
+            'message' => 'Validation errors',
+            'errors' => $validator->errors()
+        ], 422));
     }
 }
