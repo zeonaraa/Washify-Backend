@@ -4,23 +4,30 @@ namespace Database\Seeders;
 
 use Illuminate\Database\Seeder;
 use App\Models\Member;
+use Carbon\Carbon;
 
 class MemberSeeder extends Seeder
 {
     public function run()
     {
-        Member::create([
-            'nama' => 'John Doe',
-            'alamat' => 'Jl. Sembarang No. 1',
-            'jenis_kelamin' => 'L',
-            'tlp' => '089876543210',
-        ]);
+        $months = [
+            'January', 'February', 'March', 'April', 'May', 'June',
+            'July', 'August', 'September', 'October', 'November', 'December'
+        ];
 
-        Member::create([
-            'nama' => 'Jane Doe',
-            'alamat' => 'Jl. Sembarang No. 2',
-            'jenis_kelamin' => 'P',
-            'tlp' => '081234567891',
-        ]);
+        for ($i = 1; $i <= 80; $i++) {
+            $monthIndex = ($i - 1) % 12;
+            $year = 2024;
+            $date = Carbon::createFromFormat('Y-m-d', "$year-" . ($monthIndex + 1) . "-01");
+
+            Member::create([
+                'nama' => "Member $i",
+                'alamat' => "Jl. Contoh No. $i",
+                'jenis_kelamin' => $i % 2 === 0 ? 'L' : 'P',
+                'tlp' => '08' . mt_rand(1000000000, 9999999999),
+                'created_at' => $date,
+                'updated_at' => $date
+            ]);
+        }
     }
 }

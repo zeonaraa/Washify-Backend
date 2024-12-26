@@ -1,24 +1,22 @@
 <?php
-
 namespace Database\Seeders;
 
 use Illuminate\Database\Seeder;
 use App\Models\Outlet;
+use Faker\Factory as Faker;
 
 class OutletSeeder extends Seeder
 {
     public function run()
     {
-        Outlet::create([
-            'nama' => 'Laundry Bersih',
-            'alamat' => 'Jl. Kebersihan No. 1',
-            'tlp' => '081234567890',
-        ]);
+        $faker = Faker::create();
 
-        Outlet::create([
-            'nama' => 'Laundry Cepat',
-            'alamat' => 'Jl. Cepat Kilat No. 2',
-            'tlp' => '082345678901',
-        ]);
+        for ($i = 0; $i < 10; $i++) {
+            Outlet::create([
+                'nama' => $faker->company,
+                'alamat' => $faker->address,
+                'tlp' => $faker->phoneNumber,
+            ]);
+        }
     }
 }
