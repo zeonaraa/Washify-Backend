@@ -14,7 +14,7 @@ class DashboardController extends Controller
 {
     private function checkAdmin($method)
     {
-        if (!in_array(auth()->user()->role, ['admin'])) {
+        if (!in_array(auth()->user()->role, ['admin', 'kasir', 'owner'])) {
             return response()->json([
                 'message' => 'Unauthorized. Only admin, kasir and owner can perform this action.',
             ], 403);
