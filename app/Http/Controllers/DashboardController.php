@@ -34,6 +34,15 @@ class DashboardController extends Controller
     $tanggalHariIni = Carbon::today();
     $jumlahTransaksiHariIni = Transaksi::whereDate('tgl', $tanggalHariIni)->count();
 
+    // Transaksi Hari Ini Bulan Lalu
+    $tanggalHariIniBulanLalu = Carbon::today()->subMonth();
+    $jumlahTransaksiHariIniBulanLalu = Transaksi::whereDate('tgl', $tanggalHariIniBulanLalu)->count();
+
+    // Persentase Perubahan Transaksi Hari Ini
+    $percentTransaksiHariIni = $jumlahTransaksiHariIniBulanLalu > 0
+        ? (($jumlahTransaksiHariIni - $jumlahTransaksiHariIniBulanLalu) / $jumlahTransaksiHariIniBulanLalu) * 100
+        : 0;
+
     // 2. Pendapatan Hari Ini
     $pendapatanHarian = Transaksi::whereDate('tgl_bayar', today())
         ->where('dibayar', 'dibayar')
@@ -47,11 +56,37 @@ class DashboardController extends Controller
             + tb_transaksi.pajak
         '));
 
+    // Pendapatan Hari Ini Bulan Lalu
+    $pendapatanHarianBulanLalu = Transaksi::whereDate('tgl_bayar', $tanggalHariIniBulanLalu)
+        ->where('dibayar', 'dibayar')
+        ->sum(DB::raw('
+            (SELECT SUM(dt.qty * p.harga)
+            FROM tb_detail_transaksi dt
+            JOIN tb_paket p ON dt.id_paket = p.id
+            WHERE dt.id_transaksi = tb_transaksi.id)
+            + tb_transaksi.biaya_tambahan
+            - tb_transaksi.diskon
+            + tb_transaksi.pajak
+        '));
+
+    // Persentase Perubahan Pendapatan
+    $percentPendapatanHariIni = $pendapatanHarianBulanLalu > 0
+        ? (($pendapatanHarian - $pendapatanHarianBulanLalu) / $pendapatanHarianBulanLalu) * 100
+        : 0;
+
     // 3. Jumlah Member
     $jumlahMember = Member::count();
+    $jumlahMemberBulanLalu = Member::where('created_at', '<=', $tanggalHariIniBulanLalu->endOfMonth())->count();
+    $percentMember = $jumlahMemberBulanLalu > 0
+        ? (($jumlahMember - $jumlahMemberBulanLalu) / $jumlahMemberBulanLalu) * 100
+        : 0;
 
     // 4. Jumlah Outlet
     $jumlahOutlet = Outlet::count();
+    $jumlahOutletBulanLalu = Outlet::where('created_at', '<=', $tanggalHariIniBulanLalu->endOfMonth())->count();
+    $percentOutlet = $jumlahOutletBulanLalu > 0
+        ? (($jumlahOutlet - $jumlahOutletBulanLalu) / $jumlahOutletBulanLalu) * 100
+        : 0;
 
     // 5. Status Transaksi
     $statusTransaksi = [
@@ -73,7 +108,7 @@ class DashboardController extends Controller
     $topMember = Transaksi::selectRaw('id_member, COUNT(id) as total_transaksi')
         ->groupBy('id_member')
         ->orderByDesc('total_transaksi')
-        ->with('member') // Pastikan relasi member ada di model Transaksi
+        ->with('member')
         ->first();
 
     // 8. Notifikasi Transaksi Belum Dibayar
@@ -90,6 +125,10 @@ class DashboardController extends Controller
             'pendapatan_hari_ini' => $pendapatanHarian,
             'jumlah_member' => $jumlahMember,
             'jumlah_outlet' => $jumlahOutlet,
+            'percent_today_transactions' => round($percentTransaksiHariIni, 2),
+            'percent_today_revenue' => round($percentPendapatanHariIni, 2),
+            'percent_member' => round($percentMember, 2),
+            'percent_outlet' => round($percentOutlet, 2),
             'status_transaksi' => $statusTransaksi,
         ],
         'paket_paling_banyak' => [
@@ -105,4 +144,5 @@ class DashboardController extends Controller
         ],
     ], 'Dashboard data retrieved successfully', 200);
 }
+
 }
