@@ -3,7 +3,6 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
 
 class AuthController extends Controller
 {
@@ -18,12 +17,16 @@ class AuthController extends Controller
         $credentials = $request->only('username', 'password');
 
         if (!$token = auth()->attempt($credentials)) {
-            return response()->json(['message' => 'Invalid credentials'], 401);
+            return response()->json([
+                'message' => 'Invalid credentials',
+                'error' => 'The username or password is incorrect',
+            ], 401);
         }
 
         return response()->json([
             'message' => 'Login successful',
             'token' => $token,
+            'expires_in' => auth()->factory()->getTTL() * 60,
             'user' => auth()->user(),
         ]);
     }
@@ -35,9 +38,25 @@ class AuthController extends Controller
         return response()->json(['message' => 'Logout successful']);
     }
 
-    // Get Authenticated User Info
     public function me()
     {
-        return response()->json(auth()->user());
+        try {
+            return response()->json(auth()->user());
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => 'Unauthorized',
+                'error' => $e->getMessage(),
+            ], 401);
+        }
+    }
+
+    public function refresh()
+    {
+        $newToken = auth()->refresh();
+        return response()->json([
+            'message' => 'Token refreshed successfully',
+            'token' => $newToken,
+            'user' => auth()->user(),
+        ]);
     }
 }
