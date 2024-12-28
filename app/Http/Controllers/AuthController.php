@@ -50,6 +50,7 @@ class AuthController extends Controller
         }
     }
 
+
     public function refresh()
     {
         $newToken = auth()->refresh();
