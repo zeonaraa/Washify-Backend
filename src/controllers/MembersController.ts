@@ -16,10 +16,10 @@ const memberSchema = z.object({
     jenis_kelamin: z.enum(['laki_laki', 'perempuan']).refine(val => ['laki_laki', 'perempuan'].includes(val), {
         message: 'jenis kelamin must be one of: laki laki, perempuan.',
     }),
-    tlp: z.coerce.number()
-    .min(1, 'Phone number cannot be empty. Please provide a valid phone number.')
-    .int('Phone number must be an integer value.')
-    .positive('Phone number must be a positive number.'),
+    tlp: z.string()
+        .min(1, 'Phone number cannot be empty. Please provide a valid phone number.')
+        .regex(/^\d+$/, 'Phone number must contain only digits.')
+        .max(15, 'Phone number cannot be longer than 15 digits.'),
 });
 
 const memberSchemaPartial = memberSchema.partial();

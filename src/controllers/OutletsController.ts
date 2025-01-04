@@ -13,11 +13,12 @@ const outletSchema = z.object({
     alamat: z.string()
         .min(1, 'Address cannot be empty. Please enter the full address for the outlet.')
         .max(255, 'Address can be at most 255 characters long.'),
-    tlp: z.coerce.number()
+    tlp: z.string()
         .min(1, 'Phone number cannot be empty. Please provide a valid phone number.')
-        .int('Phone number must be an integer value.')
-        .positive('Phone number must be a positive number.'),
+        .regex(/^\d+$/, 'Phone number must contain only digits.')
+        .max(15, 'Phone number cannot be longer than 15 digits.'),
 });
+
 
 
 export async function getOutlets(c: Context) {

@@ -7,9 +7,9 @@ async function main() {
   // Seeding Outlets
   await prisma.outlets.createMany({
     data: [
-      { nama: "Outlet 1", alamat: "Alamat 1", tlp: 1234567891 },
-      { nama: "Outlet 2", alamat: "Alamat 2", tlp: 1234567892 },
-      { nama: "Outlet 3", alamat: "Alamat 3", tlp: 1234567893 },
+      { nama: "Outlet 1", alamat: "Alamat 1", tlp: "1234567891" },
+      { nama: "Outlet 2", alamat: "Alamat 2", tlp: "1234567892" },
+      { nama: "Outlet 3", alamat: "Alamat 3", tlp: "1234567893" },
     ],
   });
 
@@ -39,9 +39,9 @@ async function main() {
   // Seeding Members
   await prisma.members.createMany({
     data: [
-      { nama: "Icy Man", alamat: "Jl. Raya 1", jenis_kelamin: "laki_laki", tlp: 1234567890 },
-      { nama: "Manzy", alamat: "Jl. Raya 2", jenis_kelamin: "perempuan", tlp: 9876543210 },
-      { nama: "King", alamat: "Jl. Raya 3", jenis_kelamin: "perempuan", tlp: 1230984567 },
+      { nama: "Icy Man", alamat: "Jl. Raya 1", jenis_kelamin: "laki_laki", tlp: "1234567890" },
+      { nama: "Manzy", alamat: "Jl. Raya 2", jenis_kelamin: "perempuan", tlp: "9876543210" },
+      { nama: "King", alamat: "Jl. Raya 3", jenis_kelamin: "perempuan", tlp: "1230984567" },
     ],
   });
 

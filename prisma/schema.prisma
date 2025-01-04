@@ -11,7 +11,7 @@ model Outlets {
   id          Int      @id @default(autoincrement())
   nama        String   @db.VarChar(100)
   alamat      String   @db.VarChar(255)
-  tlp         Int
+  tlp         String   
   created_at  DateTime @default(now())
   updated_at  DateTime @default(now())
 
@@ -21,6 +21,7 @@ model Outlets {
 
   @@map("tb_outlets")
 }
+
 
 enum Role {
   admin
@@ -77,7 +78,7 @@ model Members {
   nama          String   @db.VarChar(100)
   alamat        String
   jenis_kelamin Gender
-  tlp           Int
+  tlp           String
   created_at    DateTime @default(now())
   updated_at    DateTime @default(now())
 
