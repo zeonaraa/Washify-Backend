@@ -9,6 +9,34 @@ const sendResponse = (c: Context, status: number, success: boolean, message: str
     return c.json({ success, message, data });
 };
 
+export const updateProfile = async (c: Context) => {
+    const user = c.get('user'); 
+    const userId = user.id;
+    const { nama, username, password } = await c.req.json();
+
+    if (userId !== user.id) {
+        return sendResponse(c, 401, false, 'Unauthorized');
+    }
+
+    let updatedData = { nama, username, password };
+    if (password) {
+        const hashedPassword = bcrypt.hashSync(password, 8);
+        updatedData.password = hashedPassword;
+    }
+
+    try {
+        const updatedUser = await prisma.users.update({
+            where: { id: userId },
+            data: updatedData,
+        });
+
+        return sendResponse(c, 200, true, 'Profile updated successfully', updatedUser);
+    } catch (err) {
+        console.error(err);
+        return sendResponse(c, 500, false, 'Failed to update profile');
+    }
+};
+
 export const register = async (c: Context) => {
     const { nama, username, password, role, id_outlet } = await c.req.json();
 
