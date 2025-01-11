@@ -83,7 +83,7 @@ export async function createTransaksi(c: Context) {
             data: {
                 ...parseBody,
                 kode_invoice,
-                tgl_bayar: parseBody.tgl_bayar ?? null,
+                tgl_bayar: (parseBody.tgl_bayar ?? null) as string | Date,
             },
         });
         
@@ -97,36 +97,36 @@ export async function createTransaksi(c: Context) {
     }
 }
 
-export async function updateTransaksi(c: Context) {
-    try {
-        const id = c.req.param('id');
-        if (!id) {
-            return sendResponse(c, 400, false, 'Transaction ID is required');
-        }
+    export async function updateTransaksi(c: Context) {
+        try {
+            const id = c.req.param('id');
+            if (!id) {
+                return sendResponse(c, 400, false, 'Transaction ID is required');
+            }
 
-        const body = await c.req.json();
-        const parseBody = transaksiSchemaPartial.parse(body);
+            const body = await c.req.json();
+            const parseBody = transaksiSchemaPartial.parse(body);
 
-        const transaksi = await prisma.transaksi.update({
-            where: { id: Number(id) },
-            data: {
-                ...parseBody,
-                tgl_bayar: parseBody.tgl_bayar ?? null,
-            },
-        });
+            const transaksi = await prisma.transaksi.update({
+                where: { id: Number(id) },
+                data: {
+                    ...parseBody,
+                    tgl_bayar: parseBody.tgl_bayar ?? undefined,
+                },
+            });
 
-        return sendResponse(c, 200, true, 'Transaction updated successfully', transaksi);
-    } catch (error) {
-        console.error(`Error updating transaction: ${error}`);
-        if (error instanceof z.ZodError) {
-            return sendResponse(c, 400, false, 'Validation error', error.errors);
+            return sendResponse(c, 200, true, 'Transaction updated successfully', transaksi);
+        } catch (error) {
+            console.error(`Error updating transaction: ${error}`);
+            if (error instanceof z.ZodError) {
+                return sendResponse(c, 400, false, 'Validation error', error.errors);
+            }
+            if ((error as { code?: string }).code === 'P2025') {
+                return sendResponse(c, 404, false, 'Transaction not found');
+            }
+            return sendResponse(c, 500, false, 'Failed to update transaction');
         }
-        if ((error as { code?: string }).code === 'P2025') {
-            return sendResponse(c, 404, false, 'Transaction not found');
-        }
-        return sendResponse(c, 500, false, 'Failed to update transaction');
     }
-}
 
 export async function deleteTransaksi(c: Context) {
     try {
