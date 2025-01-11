@@ -75,11 +75,14 @@ export async function getTransaksiById(c: Context) {
 export async function createTransaksi(c: Context) {
     try {
         const body = await c.req.json();
-        const parseBody = transaksiSchema.parse(body);
+        const kode_invoice = `INV-${new Date().toISOString().slice(0, 10).replace(/-/g, '')}-${Math.floor(Math.random() * 10000)}`;
+
+         const parseBody = transaksiSchema.omit({ kode_invoice: true }).parse(body);
 
         const transaksi = await prisma.transaksi.create({
             data: {
                 ...parseBody,
+                kode_invoice,
                 tgl_bayar: parseBody.tgl_bayar ?? null,
             },
         });
