@@ -13,5 +13,5 @@ AuthRoutes.get('/me', authMiddleware, (c) => {
     return c.json({ success: true, data: user });
 });
 
-AuthRoutes.put('/me/:id', authMiddleware, updateProfile);
+AuthRoutes.put('/me', authMiddleware, updateProfile);
 export const Routes = AuthRoutes;

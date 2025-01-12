@@ -2,6 +2,7 @@ import { Context } from "hono";
 import * as jwt from "jsonwebtoken"
 import * as bcrypt from "bcryptjs";
 import prisma from "../../prisma/client";
+import { updateUser } from "./UserController";
 
 const JWT_SECRET = 'bceb313112646bce60e1b84e4e9fbcb770545e4082663e535312757aaf732e7b'
 
@@ -10,27 +11,33 @@ const sendResponse = (c: Context, status: number, success: boolean, message: str
 };
 
 export const updateProfile = async (c: Context) => {
-    const user = c.get('user'); 
+    const user = c.get('user');
     const userId = user.id;
-    const { nama, username, password } = await c.req.json();
-
-    if (userId !== user.id) {
-        return sendResponse(c, 401, false, 'Unauthorized');
-    }
-
-    let updatedData = { nama, username, password };
-    if (password) {
-        const hashedPassword = bcrypt.hashSync(password, 8);
-        updatedData.password = hashedPassword;
-    }
+    const { nama, username, password, role } = await c.req.json();
 
     try {
+        const updatedData: any = { nama, username };
+        if (password) {
+            updatedData.password = bcrypt.hashSync(password, 8);
+        }
+
         const updatedUser = await prisma.users.update({
             where: { id: userId },
             data: updatedData,
         });
 
-        return sendResponse(c, 200, true, 'Profile updated successfully', updatedUser);
+        const newToken = jwt.sign(
+            { id: userId, username: updatedUser.username, nama: updatedUser.nama, role: updatedUser.role },
+            JWT_SECRET,
+            { expiresIn: '1h' }
+        );
+
+        return c.json({
+            success: true,
+            message: 'Profile updated successfully',
+            token: newToken,
+            data: updatedUser,
+        });
     } catch (err) {
         console.error(err);
         return sendResponse(c, 500, false, 'Failed to update profile');
@@ -86,7 +93,7 @@ export const login = async (c: Context) => {
 
         const token = jwt.sign(
             { id: user.id, nama: user.nama, username: user.username, role: user.role },
-            JWT_SECRET,
+            JWT_SECRET, 
             { expiresIn: '1h' }
         );
 
