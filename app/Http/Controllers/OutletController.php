@@ -27,7 +27,6 @@ class OutletController extends Controller
         }
     }
 
-
     public function index()
     {
         $outlets = $this->outletsRepository->index();

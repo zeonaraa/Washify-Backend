@@ -21,7 +21,7 @@ class UserController extends Controller
 
     private function checkAdmin($method)
     {
-        
+
         $user = auth()->user();
 
         if ($user->role === 'kasir' && $method !== 'show') {
