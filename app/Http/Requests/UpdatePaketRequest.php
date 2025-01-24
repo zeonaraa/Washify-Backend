@@ -13,15 +13,13 @@ class UpdatePaketRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        return true;
+        return true; // Otorisasi dilakukan di controller.
     }
 
     /**
      * Get the validation rules that apply to the request.
-     *
-     * @return array<string, \Illuminate\Contracts\Validation\ValidationRule|array<mixed>|string>
      */
-    public function rules()
+    public function rules(): array
     {
         return [
             'id_outlet' => 'nullable|exists:tb_outlet,id',
@@ -32,15 +30,28 @@ class UpdatePaketRequest extends FormRequest
     }
 
     /**
-     * Get custom attributes for validator errors.
-     *
-     * @return array
+     * Custom validation messages.
+     */
+    public function messages(): array
+    {
+        return [
+            'id_outlet.exists' => 'Outlet yang dipilih tidak valid.',
+            'jenis.in' => 'Jenis paket harus salah satu dari: kiloan, selimut, bed_cover, kaos, lain.',
+            'nama_paket.string' => 'Nama paket harus berupa teks.',
+            'nama_paket.max' => 'Nama paket maksimal 100 karakter.',
+            'harga.integer' => 'Harga paket harus berupa angka.',
+            'harga.min' => 'Harga paket minimal Rp 1.000.',
+        ];
+    }
+
+    /**
+     * Handle a failed validation attempt.
      */
     protected function failedValidation(Validator $validator)
     {
         throw new HttpResponseException(response()->json([
             'success' => false,
-            'message' => 'Validation errors',
+            'message' => 'Terjadi kesalahan validasi.',
             'errors' => $validator->errors()
         ], 422));
     }

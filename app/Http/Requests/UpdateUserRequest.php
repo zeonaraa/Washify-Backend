@@ -13,30 +13,49 @@ class UpdateUserRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        return true;
+        return true; // Otorisasi dilakukan di controller.
     }
 
     /**
      * Get the validation rules that apply to the request.
-     *
-     * @return array<string, \Illuminate\Contracts\Validation\ValidationRule|array<mixed>|string>
      */
     public function rules(): array
     {
         return [
-            'nama' => '',
-            'username' => '',
-            'password' => '',
-            'id_outlet' => '',
-            'role' => ''
+            'nama' => 'nullable|string|max:100',
+            'username' => 'nullable|string|max:50|unique:users,username,' . $this->user()->id, // Unique, kecuali untuk user yang sedang diupdate
+            'password' => 'nullable|string|min:6',
+            'id_outlet' => 'nullable|exists:tb_outlet,id',
+            'role' => 'nullable|in:admin,kasir,owner',
         ];
     }
 
+    /**
+     * Custom validation messages.
+     */
+    public function messages(): array
+    {
+        return [
+            'nama.string' => 'Nama harus berupa teks.',
+            'nama.max' => 'Nama maksimal 100 karakter.',
+            'username.string' => 'Username harus berupa teks.',
+            'username.max' => 'Username maksimal 50 karakter.',
+            'username.unique' => 'Username sudah digunakan.',
+            'password.string' => 'Password harus berupa teks.',
+            'password.min' => 'Password minimal 6 karakter.',
+            'id_outlet.exists' => 'Outlet yang dipilih tidak valid.',
+            'role.in' => 'Role harus salah satu dari: admin, kasir, owner.',
+        ];
+    }
+
+    /**
+     * Handle a failed validation attempt.
+     */
     protected function failedValidation(Validator $validator)
     {
         throw new HttpResponseException(response()->json([
             'success' => false,
-            'message' => 'Validation errors',
+            'message' => 'Terjadi kesalahan validasi.',
             'errors' => $validator->errors()
         ], 422));
     }
