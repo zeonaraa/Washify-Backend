@@ -20,7 +20,7 @@ class OutletController extends Controller
 
     private function checkAdmin($method)
     {
-        if ($method !== 'index' && (auth()->user()->role !== 'admin' && auth()->user()->role !== 'kasir')) {
+        if ($method !== 'index' && (auth()->user()->role !== 'admin' && auth()->user()->role !== 'kasir' && auth()->user()->role !== 'owner')) {
             return response()->json([
                 'message' => 'Unauthorized. Only admin or kasir can perform this action.',
             ], 403);

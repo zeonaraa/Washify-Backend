@@ -20,31 +20,28 @@ class DashboardController extends Controller
             ], 403);
         }
     }
+
     public function index()
 {
     if ($response = $this->checkAdmin(__FUNCTION__)) {
         return $response;
     }
 
+
     $user = auth()->user();
     $userName = $user->nama ?? 'Guest';
     $userRole = $user->role ?? 'Unknown';
+    $outletId = $user->id_outlet; // Ambil ID outlet dari user yang login
 
     // 1. Jumlah Transaksi Hari Ini
     $tanggalHariIni = Carbon::today();
-    $jumlahTransaksiHariIni = Transaksi::whereDate('tgl', $tanggalHariIni)->count();
-
-    // Transaksi Hari Ini Bulan Lalu
-    $tanggalHariIniBulanLalu = Carbon::today()->subMonth();
-    $jumlahTransaksiHariIniBulanLalu = Transaksi::whereDate('tgl', $tanggalHariIniBulanLalu)->count();
-
-    // Persentase Perubahan Transaksi Hari Ini
-    $percentTransaksiHariIni = $jumlahTransaksiHariIniBulanLalu > 0
-        ? (($jumlahTransaksiHariIni - $jumlahTransaksiHariIniBulanLalu) / $jumlahTransaksiHariIniBulanLalu) * 100
-        : 0;
+    $jumlahTransaksiHariIni = Transaksi::where('id_outlet', $outletId)
+        ->whereDate('tgl', $tanggalHariIni)
+        ->count();
 
     // 2. Pendapatan Hari Ini
-    $pendapatanHarian = Transaksi::whereDate('tgl_bayar', today())
+    $pendapatanHarian = Transaksi::where('id_outlet', $outletId)
+        ->whereDate('tgl_bayar', today())
         ->where('dibayar', 'dibayar')
         ->sum(DB::raw('
             (SELECT SUM(dt.qty * p.harga)
@@ -56,79 +53,55 @@ class DashboardController extends Controller
             + tb_transaksi.pajak
         '));
 
-    // Pendapatan Hari Ini Bulan Lalu
-    $pendapatanHarianBulanLalu = Transaksi::whereDate('tgl_bayar', $tanggalHariIniBulanLalu)
-        ->where('dibayar', 'dibayar')
-        ->sum(DB::raw('
-            (SELECT SUM(dt.qty * p.harga)
-            FROM tb_detail_transaksi dt
-            JOIN tb_paket p ON dt.id_paket = p.id
-            WHERE dt.id_transaksi = tb_transaksi.id)
-            + tb_transaksi.biaya_tambahan
-            - tb_transaksi.diskon
-            + tb_transaksi.pajak
-        '));
+    // 3. Jumlah Member Berdasarkan Outlet
+    $jumlahMember = Member::where('id_outlet', $outletId)->count();
 
-    // Persentase Perubahan Pendapatan
-    $percentPendapatanHariIni = $pendapatanHarianBulanLalu > 0
-        ? (($pendapatanHarian - $pendapatanHarianBulanLalu) / $pendapatanHarianBulanLalu) * 100
-        : 0;
-
-    // 3. Jumlah Member
-    $jumlahMember = Member::count();
-    $jumlahMemberBulanLalu = Member::where('created_at', '<=', $tanggalHariIniBulanLalu->endOfMonth())->count();
-    $percentMember = $jumlahMemberBulanLalu > 0
-        ? (($jumlahMember - $jumlahMemberBulanLalu) / $jumlahMemberBulanLalu) * 100
-        : 0;
-
-    // 4. Jumlah Outlet
-    $jumlahOutlet = Outlet::count();
-    $jumlahOutletBulanLalu = Outlet::where('created_at', '<=', $tanggalHariIniBulanLalu->endOfMonth())->count();
-    $percentOutlet = $jumlahOutletBulanLalu > 0
-        ? (($jumlahOutlet - $jumlahOutletBulanLalu) / $jumlahOutletBulanLalu) * 100
-        : 0;
+    // 4. Jumlah Outlet (Hanya Outlet yang Dimiliki User)
+    $jumlahOutlet = Outlet::where('id', $outletId)->count();
 
     // 5. Status Transaksi
     $statusTransaksi = [
-        'baru' => Transaksi::where('status', 'baru')->count(),
-        'proses' => Transaksi::where('status', 'proses')->count(),
-        'selesai' => Transaksi::where('status', 'selesai')->count(),
-        'diambil' => Transaksi::where('status', 'diambil')->count(),
+        'baru' => Transaksi::where('id_outlet', $outletId)->where('status', 'baru')->count(),
+        'proses' => Transaksi::where('id_outlet', $outletId)->where('status', 'proses')->count(),
+        'selesai' => Transaksi::where('id_outlet', $outletId)->where('status', 'selesai')->count(),
+        'diambil' => Transaksi::where('id_outlet', $outletId)->where('status', 'diambil')->count(),
     ];
 
     // 6. Paket Paling Banyak Dipesan
     $paketPalingBanyak = Transaksi::join('tb_detail_transaksi', 'tb_transaksi.id', '=', 'tb_detail_transaksi.id_transaksi')
-        ->join('tb_paket', 'tb_detail_transaksi.id_paket', '=', 'tb_paket.id')
-        ->selectRaw('tb_paket.nama_paket, SUM(tb_detail_transaksi.qty) as total_qty')
-        ->groupBy('tb_paket.nama_paket')
-        ->orderByDesc('total_qty')
-        ->first();
+    ->join('tb_paket', 'tb_detail_transaksi.id_paket', '=', 'tb_paket.id')
+    ->where('tb_transaksi.id_outlet', $user->id_outlet) // Pastikan kolom berasal dari tabel `tb_transaksi`
+    ->selectRaw('tb_paket.nama_paket, SUM(tb_detail_transaksi.qty) as total_qty')
+    ->groupBy('tb_paket.nama_paket')
+    ->orderByDesc('total_qty')
+    ->first();
 
-    // 7. Top Member Berdasarkan Transaksi
-    $topMember = Transaksi::selectRaw('id_member, COUNT(id) as total_transaksi')
+
+    // 7. Top Member Berdasarkan Transaksi di Outlet
+    $topMember = Transaksi::where('id_outlet', $outletId)
+        ->selectRaw('id_member, COUNT(id) as total_transaksi')
         ->groupBy('id_member')
         ->orderByDesc('total_transaksi')
         ->with('member')
         ->first();
 
     // 8. Notifikasi Transaksi Belum Dibayar
-    $transaksiBelumDibayar = Transaksi::where('dibayar', 'belum_dibayar')->count();
+    $transaksiBelumDibayar = Transaksi::where('id_outlet', $outletId)
+        ->where('dibayar', 'belum_dibayar')
+        ->count();
 
     // Return response
     return ApiResponseClass::sendResponse([
         'user' => [
             'name' => $userName,
             'role' => $userRole,
+            'outlet_id' => $outletId,
         ],
         'ringkasan_statistik' => [
             'jumlah_transaksi_hari_ini' => $jumlahTransaksiHariIni,
             'pendapatan_hari_ini' => $pendapatanHarian,
             'jumlah_member' => $jumlahMember,
             'jumlah_outlet' => $jumlahOutlet,
-            'percent_today_transactions' => round($percentTransaksiHariIni, 2),
-            'percent_today_revenue' => round($percentPendapatanHariIni, 2),
-            'percent_member' => round($percentMember, 2),
-            'percent_outlet' => round($percentOutlet, 2),
             'status_transaksi' => $statusTransaksi,
         ],
         'paket_paling_banyak' => [
@@ -144,5 +117,6 @@ class DashboardController extends Controller
         ],
     ], 'Dashboard data retrieved successfully', 200);
 }
+
 
 }

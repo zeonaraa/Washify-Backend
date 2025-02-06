@@ -25,66 +25,74 @@ class ReportController extends Controller
             ->header('Content-Disposition', 'attachment; filename="Laporan_Members.pdf"');
     }
 
-public function generateReport()
-{
-    $tanggalHariIni = Carbon::today();
-    $tanggalBulanLalu = Carbon::today()->subMonth();
+    public function generateReport()
+    {
+        $tanggalHariIni = Carbon::today();
+        $tanggalBulanLalu = Carbon::today()->subMonth();
 
-    // Data transaksi bulan ini & bulan lalu
-    $transaksiBulanIni = Transaksi::whereMonth('tgl', $tanggalHariIni->month)->count();
-    $transaksiBulanLalu = Transaksi::whereMonth('tgl', $tanggalBulanLalu->month)->count();
-    $percentTransaksi = $transaksiBulanLalu > 0 ? (($transaksiBulanIni - $transaksiBulanLalu) / $transaksiBulanLalu) * 100 : 0;
+        $idOutlet = auth()->user()->id_outlet ?? null;
 
-    // Pendapatan bulan ini & bulan lalu
-    $pendapatanBulanIni = Transaksi::whereMonth('tgl_bayar', $tanggalHariIni->month)
-        ->where('dibayar', 'dibayar')
-        ->sum(DB::raw('
-            (SELECT SUM(dt.qty * p.harga) FROM tb_detail_transaksi dt
-            JOIN tb_paket p ON dt.id_paket = p.id
-            WHERE dt.id_transaksi = tb_transaksi.id)
-            + tb_transaksi.biaya_tambahan - tb_transaksi.diskon + tb_transaksi.pajak
-        '));
+        if (!$idOutlet) {
+            return response()->json(['error' => 'User does not have an associated outlet'], 403);
+        }
 
-    $pendapatanBulanLalu = Transaksi::whereMonth('tgl_bayar', $tanggalBulanLalu->month)
-        ->where('dibayar', 'dibayar')
-        ->sum(DB::raw('
-            (SELECT SUM(dt.qty * p.harga) FROM tb_detail_transaksi dt
-            JOIN tb_paket p ON dt.id_paket = p.id
-            WHERE dt.id_transaksi = tb_transaksi.id)
-            + tb_transaksi.biaya_tambahan - tb_transaksi.diskon + tb_transaksi.pajak
-        '));
+        $transaksiBulanIni = Transaksi::where('id_outlet', $idOutlet)
+            ->whereMonth('tgl', $tanggalHariIni->month)
+            ->count();
 
-    $percentPendapatan = $pendapatanBulanLalu > 0 ? (($pendapatanBulanIni - $pendapatanBulanLalu) / $pendapatanBulanLalu) * 100 : 0;
+        $transaksiBulanLalu = Transaksi::where('id_outlet', $idOutlet)
+            ->whereMonth('tgl', $tanggalBulanLalu->month)
+            ->count();
 
-    // Jumlah Member & Outlet
-    $jumlahMember = Member::count();
-    $jumlahOutlet = Outlet::count();
+        $percentTransaksi = $transaksiBulanLalu > 0 ? (($transaksiBulanIni - $transaksiBulanLalu) / $transaksiBulanLalu) * 100 : 0;
 
-    // Status Transaksi
-    $statusTransaksi = [
-        'baru' => Transaksi::where('status', 'baru')->count(),
-        'proses' => Transaksi::where('status', 'proses')->count(),
-        'selesai' => Transaksi::where('status', 'selesai')->count(),
-        'diambil' => Transaksi::where('status', 'diambil')->count(),
-    ];
+        $pendapatanBulanIni = Transaksi::where('id_outlet', $idOutlet)
+            ->whereMonth('tgl_bayar', $tanggalHariIni->month)
+            ->where('dibayar', 'dibayar')
+            ->sum(DB::raw('
+                (SELECT SUM(dt.qty * p.harga) FROM tb_detail_transaksi dt
+                JOIN tb_paket p ON dt.id_paket = p.id
+                WHERE dt.id_transaksi = tb_transaksi.id)
+                + tb_transaksi.biaya_tambahan - tb_transaksi.diskon + tb_transaksi.pajak
+            '));
 
-    // Paket Paling Populer
-    $paketPalingBanyak = Transaksi::join('tb_detail_transaksi', 'tb_transaksi.id', '=', 'tb_detail_transaksi.id_transaksi')
-        ->join('tb_paket', 'tb_detail_transaksi.id_paket', '=', 'tb_paket.id')
-        ->selectRaw('tb_paket.nama_paket, SUM(tb_detail_transaksi.qty) as total_qty')
-        ->groupBy('tb_paket.nama_paket')
-        ->orderByDesc('total_qty')
-        ->first();
+        $pendapatanBulanLalu = Transaksi::where('id_outlet', $idOutlet)
+            ->whereMonth('tgl_bayar', $tanggalBulanLalu->month)
+            ->where('dibayar', 'dibayar')
+            ->sum(DB::raw('
+                (SELECT SUM(dt.qty * p.harga) FROM tb_detail_transaksi dt
+                JOIN tb_paket p ON dt.id_paket = p.id
+                WHERE dt.id_transaksi = tb_transaksi.id)
+                + tb_transaksi.biaya_tambahan - tb_transaksi.diskon + tb_transaksi.pajak
+            '));
 
-    // Generate PDF
-    $pdf = Pdf::loadView('reports.dashboard_report', compact(
-        'transaksiBulanIni', 'transaksiBulanLalu', 'percentTransaksi',
-        'pendapatanBulanIni', 'pendapatanBulanLalu', 'percentPendapatan',
-        'jumlahMember', 'jumlahOutlet', 'statusTransaksi', 'paketPalingBanyak'
-    ))->setPaper('A4', 'portrait');
+        $percentPendapatan = $pendapatanBulanLalu > 0 ? (($pendapatanBulanIni - $pendapatanBulanLalu) / $pendapatanBulanLalu) * 100 : 0;
 
-    return $pdf->download('Laporan_Dashboard.pdf');
-}
+        $jumlahMember = Member::where('id_outlet', $idOutlet)->count();
+        $jumlahOutlet = Outlet::count();
+        $statusTransaksi = [
+            'baru' => Transaksi::where('id_outlet', $idOutlet)->where('status', 'baru')->count(),
+            'proses' => Transaksi::where('id_outlet', $idOutlet)->where('status', 'proses')->count(),
+            'selesai' => Transaksi::where('id_outlet', $idOutlet)->where('status', 'selesai')->count(),
+            'diambil' => Transaksi::where('id_outlet', $idOutlet)->where('status', 'diambil')->count(),
+        ];
+
+        $paketPalingBanyak = Transaksi::join('tb_detail_transaksi', 'tb_transaksi.id', '=', 'tb_detail_transaksi.id_transaksi')
+            ->join('tb_paket', 'tb_detail_transaksi.id_paket', '=', 'tb_paket.id')
+            ->where('tb_transaksi.id_outlet', $idOutlet)
+            ->selectRaw('tb_paket.nama_paket, SUM(tb_detail_transaksi.qty) as total_qty')
+            ->groupBy('tb_paket.nama_paket')
+            ->orderByDesc('total_qty')
+            ->first();
+
+        $pdf = Pdf::loadView('reports.dashboard_report', compact(
+            'transaksiBulanIni', 'transaksiBulanLalu', 'percentTransaksi',
+            'pendapatanBulanIni', 'pendapatanBulanLalu', 'percentPendapatan',
+            'jumlahMember', 'jumlahOutlet', 'statusTransaksi', 'paketPalingBanyak'
+        ))->setPaper('A4', 'portrait');
+
+        return $pdf->download('Laporan_Dashboard.pdf');
+    }
 
 
 }
