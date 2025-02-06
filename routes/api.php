@@ -32,9 +32,6 @@ Route::middleware(['auth:api'])->group(function () {
     Route::apiResource('members', MemberController::class);
     Route::apiResource('transaksis', TransaksiController::class);
     Route::apiResource('details', DetailTransaksiController::class);
-
-    Route::get('/laporan', [ReportController::class, 'getReports']);
     Route::get('/dashboard', [DashboardController::class, 'index']);
-
-
+    Route::get('/report/members', [ReportController::class, 'generateMemberReport']);
 });
