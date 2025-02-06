@@ -34,4 +34,6 @@ Route::middleware(['auth:api'])->group(function () {
     Route::apiResource('details', DetailTransaksiController::class);
     Route::get('/dashboard', [DashboardController::class, 'index']);
     Route::get('/report/members', [ReportController::class, 'generateMemberReport']);
+    Route::get('/dashboard/report', [ReportController::class, 'generateReport']);
+
 });
